@@ -1,64 +1,102 @@
-# Social Media Disaster Simulator
+# 🌊Sentinel: Real-Time Social Media Analytics for Coastal Hazard Detection
 
-This project contains a Python-based simulator for generating synthetic social media data related to various natural disasters. It is designed to create realistic-looking posts for platforms like Twitter, Facebook, Instagram, YouTube, and news outlets.
+This project is a real-time analytics platform designed to detect and analyze coastal hazards by monitoring social media platforms. It simulates social media data, processes it in real-time to identify hazard alerts, and provides a live dashboard for situational awareness.
 
-## Features
+## 📌 Problem Statement
 
-- **Multi-platform Simulation**: Generates data for Twitter, Facebook, Instagram, YouTube, and News platforms.
-- **Multi-lingual Support**: Creates content in multiple languages including English, Hindi, Marathi, Tamil, Telugu, and Konkani.
-- **Diverse Content Types**: Simulates different types of posts:
-    - **Hazard Posts**: Direct reports and warnings about disasters.
-    - **False Alarms**: Misinformation and unverified rumors.
-    - **Noise**: Irrelevant or joke posts.
-- **Realistic User Simulation**: Generates user profiles with varying follower counts, verification status, and bios.
-- **Code-Switching**: Simulates posts that mix languages (e.g., Hinglish).
-- **Rich Media Simulation**: Associates posts with relevant images.
+Coastal regions in India are highly vulnerable to a variety of natural disasters, including floods, cyclones, tsunamis, erosion, and heavy rainfall. During these events, social media platforms like Twitter, Facebook, and YouTube become critical sources of first-hand information, with people sharing updates, rumors, and calls for help.
 
-## File Structure
+**The challenge lies in:**
 
-- `Simulate data/`: Contains the core simulator logic and data.
-  - `simulator.py`: The main script that runs the simulation.
-  - `simulator_data.py`: Contains all the static data, templates, and translations used by the simulator.
-- `Media/`: Contains images used in the generated social media posts.
-- `myenv/`: Python virtual environment for the project.
-- `Scraping scrapped/`: Contains scripts for scraping data from social media platforms.
-- `requirements.txt`: A list of Python dependencies required to run the project.
-- `README.md`: This file.
+-   **Filtering Signal from Noise**: Differentiating genuine hazard alerts from irrelevant content, humor, or false alarms.
+-   **Detecting Discussion Spikes**: Identifying sudden increases in conversations about hazards in specific coastal areas.
+-   **Providing Timely Warnings**: Delivering real-time early warnings and situational awareness to authorities and the public.
 
-## How to Run the Simulator
+## 🎯 Our Solution
 
-1.  **Set up the environment**:
-    Make sure you have Python installed. It is recommended to use a virtual environment.
+We are developing a real-time analytics platform that performs the following functions:
 
-    ```bash
-    python -m venv myenv
-    source myenv/bin/activate  # On Windows use `myenv\Scripts\activate`
-    ```
+1.  **Simulates Social Media Data**: Generates realistic social media posts, as access to real-time APIs is often restricted or paid.
+2.  **Streams Data in Real-Time**: Uses a message broker (Redis) to stream posts as they are generated.
+3.  **Processes with an NLP Engine**: An NLP engine consumes the posts and classifies them into:
+    -   ✅ **Hazard Alerts**
+    -   ⚠️ **False Alarms / Misinformation**
+    -   ❌ **Noise / Humor / Pranks**
+4.  **Extracts Key Information**: Identifies the type of hazard and the location mentioned in the posts.
+5.  **Visualizes and Alerts**: Displays the results on a live dashboard and triggers alerts when risk levels in a particular area spike.
 
-2.  **Install dependencies**:
-    Install all the required packages using the `requirements.txt` file.
+## 🛠️ System Architecture
 
-    ```bash
-    pip install -r requirements.txt
-    ```
+```mermaid
+graph TD
+  A[Simulator / Ingestion] -->|Publish| B[(Redis Pub/Sub)]
+  B --> C[NLP Engine Consumer]
+  C --> D[(Database)]
+  C --> E[Alerting Service]
+  D --> F[Dashboard / Analytics UI]
+```
 
-3.  **Run the simulator**:
-    Navigate to the `Simulate data` directory and run the `simulator.py` script.
+-   **Simulator / Ingestion**: Generates realistic, multilingual posts simulating hazards, noise, and false alarms.
+-   **Redis Pub/Sub**: A lightweight message broker that facilitates real-time data streaming.
+-   **NLP Engine**: Filters, classifies, and extracts entities from the incoming posts.
+-   **Database**: Stores the processed data for analysis and visualization.
+-   **Dashboard**: Visualizes hazard alerts, maps, and user engagement metrics.
 
-    ```bash
-    cd "Simulate data"
-    python simulator.py
-    ```
+## ✨ Key Features
 
-    You can use command-line arguments to customize the simulation:
-    - `--count` or `-c`: Number of posts to generate (default: 10).
-    - `--delay` or `-d`: Delay in seconds between posts (default: 2.0).
-    - `--output` or `-o`: File to save the generated posts in JSONL format.
-    - `--batch` or `-b`: Generate all posts at once without delay.
-    - `--media` or `-m`: Path to the media folder.
+#### 🔹 Simulator
 
-    **Example**:
-    ```bash
-    python simulator.py --count 20 --delay 0.5 --batch --output generated_posts.jsonl
-    ```
-    This command will generate 20 posts in a batch and save them to `generated_posts.jsonl`.
+-   **Multi-Platform Simulation**: Generates posts for Twitter, Facebook, Instagram, YouTube, and news portals.
+-   **Human-like Content**: Creates realistic content, including casual reports, rumors, and code-switching (e.g., Hindi-English-Marathi).
+-   **Diverse Post Types**: Simulates hazard alerts, noise/jokes, and false alarms.
+-   **Simulates Misinformation**: Randomly attaches images, sometimes mismatched, to simulate the spread of false information.
+-   **Rich Metadata**: Adds metadata such as follower counts, likes, shares, and user verification status.
+
+#### 🔹 Streaming
+
+-   **Real-Time Flow**: Uses Redis Pub/Sub for an efficient, real-time message stream.
+-   **Decoupled Architecture**: Separates the data producer (simulator) from the consumer (NLP engine).
+
+#### 🔹 NLP Engine
+
+-   **Hazard Detection**: Identifies the type of hazard (e.g., flood, cyclone, tsunami).
+-   **Location Extraction**: Uses NER (Named Entity Recognition) to extract locations from posts.
+-   **Noise Filtering**: Filters out irrelevant content, humor, and pranks.
+-   **Misinformation Flagging**: Identifies and flags potential false alarms.
+
+#### 🔹 Dashboard & Alerts
+
+-   **Live Visualization**: Provides a real-time view of incoming hazard posts.
+-   **Heatmaps**: Displays heatmaps for coastal locations with high hazard-related activity.
+-   **Spike Detection**: Implements early warning systems by detecting spikes in hazard discussions.
+-   **Notifications**: Sends alerts through console notifications.
+
+## ⚡ Tech Stack
+
+-   **Data Simulation**: Python
+-   **Streaming**: Redis Pub/Sub
+-   **NLP Engine**: Python, Regex/NER, with optional LLM few-shot classification
+-   **Database**: SQLite / PostgreSQL / Elasticsearch
+-   **Dashboard**: Streamlit / Grafana / FastAPI
+
+## 🚀 Future Scope
+
+-   **Integrate Real APIs**: Replace the simulator with real data from APIs like the YouTube Data API, Reddit, and News RSS feeds.
+-   **Scale with Kafka**: Migrate from Redis to Kafka for more robust, enterprise-scale deployments.
+-   **Add Computer Vision**: Incorporate computer vision to analyze images and videos for evidence of disasters.
+-   **Integrate with Official Systems**: Connect with official disaster alert systems for government and public use.
+
+## 📊 Demo Flow
+
+1.  The simulator generates multilingual posts about hazards and noise.
+2.  These posts are streamed in real-time into Redis.
+3.  The NLP engine processes the posts as they arrive.
+4.  The dashboard updates live to show the latest hazard detections.
+5.  Alerts are triggered if there is a spike in disaster-related chatter.
+
+## 💡 Impact
+
+-   **Early Situational Awareness**: Provides timely awareness of developing coastal hazards.
+-   **Filters Misinformation**: Helps to filter out rumors, false alarms, and memes.
+-   **Multilingual Support**: Designed to work in the multilingual context of India.
+-   **Scalable Architecture**: The prototype is hackathon-ready but is built on an architecture that can be scaled to real-world systems.
