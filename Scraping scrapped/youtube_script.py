@@ -6,6 +6,11 @@ import os
 from datetime import datetime, timedelta
 import re
 
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+
 # Configure logging
 logging.basicConfig(
     level=logging.INFO,
@@ -17,7 +22,7 @@ logging.basicConfig(
 )
 
 # [KEY] Replace with your API key
-API_KEY = "AIzaSyCKTQcANbfOqQ5Q_b829ub26zEr0o8to1E"
+API_KEY = os.getenv("YOUTUBE_API_KEY_SCRIPT")
 
 # Validate API key
 def validate_api_key():

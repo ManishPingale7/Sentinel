@@ -1,7 +1,12 @@
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+
 # YouTube Disaster Monitoring Configuration
 
 # API Configuration
-YOUTUBE_API_KEY = "AIzaSyCifSphkbSWJSM56Hq_feutq-fs7QcrLs0"  # Replace with your key
+YOUTUBE_API_KEY = os.getenv("YOUTUBE_API_KEY_CONFIG")  # Replace with your key
 API_QUOTA_LIMIT = 10000  # Daily quota limit
 
 # Monitoring Configuration
