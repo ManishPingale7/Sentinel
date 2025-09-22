@@ -21,6 +21,13 @@ import glob
 
 import simulator_data as sd
 
+try:
+    import redis
+    REDIS_AVAILABLE = True
+except ImportError:
+    REDIS_AVAILABLE = False
+    print("Warning: Redis not installed. Install with: pip install redis")
+
 
 class DisasterSocialMediaSimulator:
     """
@@ -32,6 +39,10 @@ class DisasterSocialMediaSimulator:
         """Initialize the simulator with media folder path."""
         self.media_folder = media_folder
         self.media_base_url = "http://localhost/media"
+        
+        # Redis configuration
+        self.redis_client = None
+        self.redis_stream_name = "disaster_posts"
         
         # Hazard categories
         self.hazard_categories = sd.HAZARD_CATEGORIES
@@ -63,6 +74,48 @@ class DisasterSocialMediaSimulator:
         self.news_orgs = sd.NEWS_ORGS
         self.hashtags = sd.HASHTAGS
         self.emojis = sd.EMOJIS
+    
+    def setup_redis(self, host: str = "localhost", port: int = 6379, db: int = 0) -> bool:
+        """Setup Redis connection for streaming."""
+        if not REDIS_AVAILABLE:
+            print("Error: Redis library not installed. Please install with: pip install redis")
+            return False
+        
+        try:
+            self.redis_client = redis.Redis(host=host, port=port, db=db, decode_responses=True)
+            # Test connection
+            self.redis_client.ping()
+            print(f"✓ Connected to Redis at {host}:{port}")
+            return True
+        except redis.ConnectionError:
+            print(f"✗ Failed to connect to Redis at {host}:{port}")
+            print("Make sure Redis server is running.")
+            return False
+        except Exception as e:
+            print(f"✗ Redis setup error: {e}")
+            return False
+    
+    def stream_to_redis(self, post: Dict) -> bool:
+        """Stream a post to Redis."""
+        if not self.redis_client:
+            print("Error: Redis not connected. Call setup_redis() first.")
+            return False
+        
+        try:
+            # Add post to Redis stream
+            post_id = self.redis_client.xadd(
+                self.redis_stream_name,
+                {
+                    "post_data": json.dumps(post, ensure_ascii=False),
+                    "timestamp": post.get("timestamp", datetime.now().isoformat()),
+                    "platform": post.get("platform", "unknown"),
+                    "post_type": post.get("post_type", "unknown")
+                }
+            )
+            return True
+        except Exception as e:
+            print(f"Error streaming to Redis: {e}")
+            return False
     
     def _get_random_timestamp(self, days_back_max: int = 30) -> str:
         """Generate random timestamp, sometimes old for historical detection."""
@@ -406,20 +459,21 @@ class DisasterSocialMediaSimulator:
                     template = random.choice(templates)
                     location = random.choice(self.locations.get(language, self.locations['English']))
                     hazard_name = hazard_category.lower().replace('_', ' ')
-                    text = template.format(location=location, hazard=hazard_name)
+                    text_template = random.choice(templates)
+                    text = text_template.replace('{location}', location).replace('{hazard}', hazard_name)
                 else:
                     templates = self.hazard_templates.get(hazard_category, {}).get(language, 
                               self.hazard_templates.get(hazard_category, {}).get('English', []))
                     template = random.choice(templates) if templates else f"Alert: {hazard_category} warning!"
                     location = random.choice(self.locations.get(language, self.locations['English']))
-                    text = template.format(location=location)
+                    text = template.replace('{location}', location)
                     
             elif post_type == 'false_alarm':
                 templates = self.false_alarm_templates.get(language, self.false_alarm_templates['English'])
                 template = random.choice(templates)
                 location = random.choice(self.locations.get(language, self.locations['English']))
                 hazard_name = hazard_category.lower().replace('_', ' ') if hazard_category else 'disaster'
-                text = template.format(location=location, hazard_type=hazard_name)
+                text = template.replace('{location}', location).replace('{hazard_type}', hazard_name)
             else:
                 templates = self.noise_templates.get(language, self.noise_templates['English'])
                 text = random.choice(templates)
@@ -477,14 +531,15 @@ class DisasterSocialMediaSimulator:
                       self.hazard_templates.get(hazard_category, {}).get('English', []))
             title_template = random.choice(templates) if templates else f"Alert: {hazard_category} warning!"
             location = random.choice(self.locations.get(language, self.locations['English']))
-            title = title_template.format(location=location)
+            title = title_template.replace('{location}', location)
             
             descriptions = sd.YOUTUBE_DESCRIPTIONS['hazard']
-            description = descriptions.get(language, descriptions['English']).format(hazard_category=hazard_category.lower(), location=location)
+            description = descriptions.get(language, descriptions['English']).replace('{hazard_category}', hazard_category.lower()).replace('{location}', location)
         elif post_type == 'false_alarm':
             location = random.choice(self.locations.get(language, self.locations['English']))
             titles = sd.YOUTUBE_TITLES['false_alarm']
-            title = titles.get(language, titles['English']).format(hazard_category=hazard_category or 'disaster', location=location)
+            title_template = random.choice(titles.get(language, titles['English']))
+            title = title_template.replace('{hazard_category}', hazard_category or 'disaster').replace('{location}', location)
             description = "Debunking false information. Always verify from official sources."
         else:
             titles = sd.YOUTUBE_TITLES['noise']
@@ -545,22 +600,26 @@ class DisasterSocialMediaSimulator:
                 hazard_category = random.choice([h for h in self.hazard_categories if h != 'Non'])
             
             headlines = sd.NEWS_HEADLINE_TEMPLATES['hazard'].get(language, sd.NEWS_HEADLINE_TEMPLATES['hazard']['English'])
-            headline = random.choice(headlines).format(hazard_category=hazard_category.replace('_', ' ').title(), location=location)
+            headline_template = random.choice(headlines)
+            headline = headline_template.replace('{hazard_category}', hazard_category.replace('_', ' ').title()).replace('{location}', location)
             
             article_content = sd.NEWS_ARTICLE_CONTENT['hazard']
-            content = article_content.get(language, article_content['English']).format(
-                location=location, 
-                hazard_category=hazard_category.lower().replace('_', ' ')
+            content = article_content.get(language, article_content['English']).replace(
+                '{location}', location 
+            ).replace(
+                '{hazard_category}', hazard_category.lower().replace('_', ' ')
             )
             
         elif post_type == 'false_alarm':
             headlines = sd.NEWS_HEADLINE_TEMPLATES['false_alarm']
-            headline = headlines.get(language, headlines['English']).format(hazard_category=hazard_category or 'Disaster', location=location)
+            headline_template = random.choice(headlines.get(language, headlines['English']))
+            headline = headline_template.replace('{hazard_category}', hazard_category or 'Disaster').replace('{location}', location)
             content = f"Officials clarify that recent social media reports about {hazard_category or 'disaster'} threat to {location} are unfounded. Citizens are advised to rely only on official sources."
             
         else:
             headlines = sd.NEWS_HEADLINE_TEMPLATES['noise']
-            headline = headlines.get(language, headlines['English']).format(location=location)
+            headline_template = random.choice(headlines.get(language, headlines['English']))
+            headline = headline_template.replace('{location}', location)
             content = "A local resident's humorous social media post about weather conditions has gone viral, bringing some light moments during serious times."
         
         is_old = random.random() < 0.2
@@ -599,17 +658,17 @@ class DisasterSocialMediaSimulator:
                 hazard_category = random.choice([h for h in self.hazard_categories if h != 'Non'])
             
             captions = sd.INSTAGRAM_CAPTIONS['hazard']
-            caption = random.choice(captions.get(language, captions['English'])).format(
-                hazard_category=hazard_category.lower().replace('_', ' '), 
-                location=location
-            )
+            caption_template = random.choice(captions.get(language, captions['English']))
+            caption = caption_template.replace(
+                '{hazard_category}', hazard_category.lower().replace('_', ' ')
+            ).replace('{location}', location)
             
         elif post_type == 'false_alarm':
             captions = sd.INSTAGRAM_CAPTIONS['false_alarm']
-            caption = random.choice(captions.get(language, captions['English'])).format(
-                hazard_category=hazard_category or 'disaster', 
-                location=location
-            )
+            caption_template = random.choice(captions.get(language, captions['English']))
+            caption = caption_template.replace(
+                '{hazard_category}', hazard_category or 'disaster'
+            ).replace('{location}', location)
             
         else:
             captions = sd.INSTAGRAM_CAPTIONS['noise']
@@ -663,21 +722,18 @@ class DisasterSocialMediaSimulator:
                 hazard_category = random.choice([h for h in self.hazard_categories if h != 'Non'])
             
             posts = sd.FACEBOOK_POSTS['hazard']
-            content = random.choice(posts.get(language, posts['English'])).format(
-                hazard_category=hazard_category.replace('_', ' ').title(), 
-                location=location
-            )
+            content_template = random.choice(posts.get(language, posts['English']))
+            content = content_template.replace('{hazard_category}', hazard_category.replace('_', ' ').title()).replace('{location}', location)
             
         elif post_type == 'false_alarm':
             posts = sd.FACEBOOK_POSTS['false_alarm']
-            content = random.choice(posts.get(language, posts['English'])).format(
-                hazard_category=hazard_category or 'disaster', 
-                location=location
-            )
+            content_template = random.choice(posts.get(language, posts['English']))
+            content = content_template.replace('{hazard_category}', hazard_category or 'disaster').replace('{location}', location)
             
         else:
             posts = sd.FACEBOOK_POSTS['noise']
-            content = random.choice(posts.get(language, posts['English'])).replace('{location}', location)
+            content_template = random.choice(posts.get(language, posts['English']))
+            content = content_template.replace('{location}', location)
         
         images = []
         if random.random() > 0.4:
@@ -940,6 +996,188 @@ class DisasterSocialMediaSimulator:
             if i < count - 1:
                 time.sleep(delay)
     
+    def generate_stream_periodic(self, schedule: Dict[str, float]):
+        """Generate a stream of posts based on a periodic schedule."""
+        print("Starting periodic social media disaster simulation...")
+        print("Schedule (seconds):", schedule)
+        print("Press Ctrl+C to stop.")
+        print("-" * 60)
+        
+        last_post_time = {platform: time.time() - interval for platform, interval in schedule.items()}
+        
+        try:
+            while True:
+                now = time.time()
+                for platform, interval in schedule.items():
+                    if now - last_post_time.get(platform, 0) >= interval:
+                        print(f"Generating '{platform}' post...")
+                        
+                        post_type = random.choices(
+                            list(self.post_type_weights.keys()),
+                            weights=list(self.post_type_weights.values())
+                        )[0]
+                        
+                        hazard_category = None
+                        if post_type in ['hazard', 'false_alarm']:
+                            hazard_category = random.choice([h for h in self.hazard_categories if h != 'Non'])
+                        
+                        if platform == 'twitter':
+                            post = self.generate_twitter_post(post_type, hazard_category)
+                        elif platform == 'youtube':
+                            post = self.generate_youtube_post(post_type, hazard_category)
+                        elif platform == 'news':
+                            post = self.generate_news_post(post_type, hazard_category)
+                        elif platform == 'instagram':
+                            post = self.generate_instagram_post(post_type, hazard_category)
+                        elif platform == 'facebook':
+                            post = self.generate_facebook_post(post_type, hazard_category)
+                        else:
+                            # Fallback to twitter post if platform is unknown
+                            post = self.generate_twitter_post(post_type, hazard_category)
+
+                        print(json.dumps(post, indent=2, ensure_ascii=False))
+                        print("-" * 60)
+                        
+                        last_post_time[platform] = now
+                
+                time.sleep(1)
+                
+        except KeyboardInterrupt:
+            print("\nSimulation stopped by user.")
+    
+    def generate_stream_periodic_redis(self, schedule: Dict[str, float], redis_host: str = "localhost", redis_port: int = 6379):
+        """Generate a stream of posts based on a periodic schedule and stream to Redis."""
+        if not self.setup_redis(redis_host, redis_port):
+            print("Failed to setup Redis. Exiting...")
+            return
+        
+        print("Starting periodic social media disaster simulation with Redis streaming...")
+        print(f"Redis stream: {self.redis_stream_name}")
+        print("Schedule (seconds):", schedule)
+        print("Press Ctrl+C to stop.")
+        print("-" * 60)
+        
+        last_post_time = {platform: time.time() - interval for platform, interval in schedule.items()}
+        posts_streamed = 0
+        
+        try:
+            while True:
+                now = time.time()
+                for platform, interval in schedule.items():
+                    if now - last_post_time.get(platform, 0) >= interval:
+                        print(f"Generating '{platform}' post...")
+                        
+                        post_type = random.choices(
+                            list(self.post_type_weights.keys()),
+                            weights=list(self.post_type_weights.values())
+                        )[0]
+                        
+                        hazard_category = None
+                        if post_type in ['hazard', 'false_alarm']:
+                            hazard_category = random.choice([h for h in self.hazard_categories if h != 'Non'])
+                        
+                        if platform == 'twitter':
+                            post = self.generate_twitter_post(post_type, hazard_category)
+                        elif platform == 'youtube':
+                            post = self.generate_youtube_post(post_type, hazard_category)
+                        elif platform == 'news':
+                            post = self.generate_news_post(post_type, hazard_category)
+                        elif platform == 'instagram':
+                            post = self.generate_instagram_post(post_type, hazard_category)
+                        elif platform == 'facebook':
+                            post = self.generate_facebook_post(post_type, hazard_category)
+                        else:
+                            # Fallback to twitter post if platform is unknown
+                            post = self.generate_twitter_post(post_type, hazard_category)
+
+                        # Add post_type to the post data for better tracking
+                        post['post_type'] = post_type
+                        
+                        # Stream to Redis
+                        if self.stream_to_redis(post):
+                            posts_streamed += 1
+                            print(f"✓ Streamed {platform} post to Redis (Total: {posts_streamed})")
+                        else:
+                            print(f"✗ Failed to stream {platform} post to Redis")
+                        
+                        print("-" * 60)
+                        
+                        last_post_time[platform] = now
+                
+                time.sleep(1)
+                
+        except KeyboardInterrupt:
+            print(f"\nSimulation stopped by user. Total posts streamed: {posts_streamed}")
+            if self.redis_client:
+                self.redis_client.close()
+
+    def generate_stream_periodic_redis_timed(self, schedule: Dict[str, float], duration: int, redis_host: str = "localhost", redis_port: int = 6379):
+        """Generate posts for a specific duration and stream to Redis."""
+        if not self.setup_redis(redis_host, redis_port):
+            print("Failed to setup Redis. Exiting...")
+            return
+        
+        print(f"Starting timed social media simulation for {duration} seconds...")
+        print(f"Redis stream: {self.redis_stream_name}")
+        print("Schedule (seconds):", schedule)
+        print("-" * 60)
+        
+        start_time = time.time()
+        end_time = start_time + duration
+        last_post_time = {platform: time.time() - interval for platform, interval in schedule.items()}
+        posts_streamed = 0
+        
+        try:
+            while time.time() < end_time:
+                now = time.time()
+                remaining = int(end_time - now)
+                
+                for platform, interval in schedule.items():
+                    if now - last_post_time.get(platform, 0) >= interval:
+                        print(f"[{remaining}s remaining] Generating '{platform}' post...")
+                        
+                        post_type = random.choices(
+                            list(self.post_type_weights.keys()),
+                            weights=list(self.post_type_weights.values())
+                        )[0]
+                        
+                        hazard_category = None
+                        if post_type in ['hazard', 'false_alarm']:
+                            hazard_category = random.choice([h for h in self.hazard_categories if h != 'Non'])
+                        
+                        if platform == 'twitter':
+                            post = self.generate_twitter_post(post_type, hazard_category)
+                        elif platform == 'youtube':
+                            post = self.generate_youtube_post(post_type, hazard_category)
+                        elif platform == 'news':
+                            post = self.generate_news_post(post_type, hazard_category)
+                        elif platform == 'instagram':
+                            post = self.generate_instagram_post(post_type, hazard_category)
+                        elif platform == 'facebook':
+                            post = self.generate_facebook_post(post_type, hazard_category)
+                        else:
+                            post = self.generate_twitter_post(post_type, hazard_category)
+
+                        post['post_type'] = post_type
+                        
+                        if self.stream_to_redis(post):
+                            posts_streamed += 1
+                            print(f"✓ Streamed {platform} post to Redis (Total: {posts_streamed})")
+                        else:
+                            print(f"✗ Failed to stream {platform} post to Redis")
+                        
+                        print("-" * 60)
+                        last_post_time[platform] = now
+                
+                time.sleep(1)
+                
+        except KeyboardInterrupt:
+            print(f"\nSimulation stopped by user.")
+        
+        print(f"\nSimulation completed! Total posts streamed: {posts_streamed}")
+        if self.redis_client:
+            self.redis_client.close()
+
     def generate_batch(self, count: int = 100) -> List[Dict]:
         """Generate a batch of posts without delays."""
         return [self.generate_post() for _ in range(count)]
@@ -950,6 +1188,43 @@ class DisasterSocialMediaSimulator:
             for post in posts:
                 f.write(json.dumps(post, ensure_ascii=False) + '\n')
         print(f"Saved {len(posts)} posts to {filename}")
+
+
+def _parse_time_input(time_str: str) -> Optional[float]:
+    """Parse time input like '2h', '30m', '1.5h' into seconds."""
+    time_str = time_str.strip().lower()
+    if not time_str:
+        return None
+    
+    try:
+        if time_str.endswith('h'):
+            return float(time_str[:-1]) * 3600
+        elif time_str.endswith('m'):
+            return float(time_str[:-1]) * 60
+        else:
+            # Assume hours if no unit
+            return float(time_str) * 3600
+    except ValueError:
+        return None
+
+def get_periodic_settings(platforms: List[str]) -> Dict[str, float]:
+    """Get periodic time settings from the user for each platform."""
+    print("\n--- Configure Periodic Post Generation ---")
+    print("Enter the time interval for each platform (e.g., '2h', '30m', '0.5h').")
+    
+    schedule = {}
+    for platform in platforms:
+        while True:
+            time_input = input(f"  - Interval for '{platform}' posts: ")
+            interval_seconds = _parse_time_input(time_input)
+            if interval_seconds is not None and interval_seconds > 0:
+                schedule[platform] = interval_seconds
+                break
+            else:
+                print("  Invalid input. Please use a format like '2h', '30m', or a number for hours.")
+    
+    print("----------------------------------------\n")
+    return schedule
 
 
 def main():
@@ -967,12 +1242,47 @@ def main():
                        help='Generate all posts at once without delays')
     parser.add_argument('--media', '-m', type=str, default="../Media",
                        help='Path to media folder (default: ../Media)')
+    parser.add_argument('--interactive', '-i', action='store_true',
+                        help='Run in interactive mode to set periodic post times')
+    parser.add_argument('--redis', '-r', action='store_true',
+                        help='Enable Redis streaming mode (requires --interactive)')
+    parser.add_argument('--redis-host', type=str, default='localhost',
+                        help='Redis host (default: localhost)')
+    parser.add_argument('--redis-port', type=int, default=6379,
+                        help='Redis port (default: 6379)')
+    parser.add_argument('--duration', type=int, default=None,
+                        help='Duration to run in seconds (for Redis mode, overrides interactive schedule)')
     
     args = parser.parse_args()
     
     simulator = DisasterSocialMediaSimulator(media_folder=args.media)
     
-    if args.batch:
+    if args.duration and args.redis:
+        # Duration-based Redis streaming mode
+        print(f"🚀 Starting Redis streaming for {args.duration} seconds...")
+        simulator.setup_redis(args.redis_host, args.redis_port)
+        
+        # Create a simple schedule with fast generation
+        simple_schedule = {
+            'twitter': 3,      # Every 3 seconds
+            'facebook': 5,     # Every 5 seconds  
+            'instagram': 7,    # Every 7 seconds
+            'news': 10,        # Every 10 seconds
+            'youtube': 15      # Every 15 seconds
+        }
+        
+        simulator.generate_stream_periodic_redis_timed(simple_schedule, args.duration, args.redis_host, args.redis_port)
+        
+    elif args.interactive:
+        platforms = simulator.platforms
+        schedule = get_periodic_settings(platforms)
+        
+        if args.redis:
+            simulator.generate_stream_periodic_redis(schedule, args.redis_host, args.redis_port)
+        else:
+            simulator.generate_stream_periodic(schedule)
+
+    elif args.batch:
         posts = simulator.generate_batch(args.count)
         
         languages = {}

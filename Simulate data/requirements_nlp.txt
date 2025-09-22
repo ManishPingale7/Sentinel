@@ -1,0 +1,11 @@
+# Redis streaming
+redis>=4.5.0
+
+# Google Gemini API
+google-generativeai>=0.3.0
+
+# Firebase
+firebase-admin>=6.2.0
+
+# Existing requirements (if any)
+# Add your existing requirements here
