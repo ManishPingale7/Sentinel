@@ -40,14 +40,15 @@ class DisasterNLPEngine:
     NLP Engine for processing disaster-related social media posts.
     """
     
-    def __init__(self, gemini_api_key: str, firebase_cred_path: Optional[str] = None):
+    def __init__(self, gemini_api_key: str, firebase_cred_path: Optional[str] = None, model_name: str = 'gemini-1.5-flash-latest'):
         """Initialize the NLP engine."""
         self.gemini_api_key = gemini_api_key
         self.firebase_cred_path = firebase_cred_path
+        self.model_name = model_name
         
         # Setup logging first
         logging.basicConfig(
-            level=logging.DEBUG,  # Enable debug logging to see raw responses
+            level=logging.INFO,
             format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
         )
         self.logger = logging.getLogger(__name__)
@@ -72,8 +73,42 @@ class DisasterNLPEngine:
             raise ImportError("Google Generative AI library not installed")
         
         genai.configure(api_key=self.gemini_api_key)
-        self.model = genai.GenerativeModel('gemini-1.5-flash')  # Updated model name
-        self.logger.info("✓ Gemini API configured successfully")
+        
+        # Try the specified model first, then fallback options
+        model_names = [
+            self.model_name,
+            'models/gemini-2.5-flash',
+            'models/gemini-1.5-flash',
+            'models/gemini-1.5-pro',
+            'models/gemini-pro',
+            'gemini-1.5-flash-latest',
+            'gemini-1.5-flash',
+            'gemini-1.5-pro',
+            'gemini-pro',
+            'gemini-1.0-pro'
+        ]
+        
+        # Remove duplicates while preserving order
+        seen = set()
+        unique_models = []
+        for model in model_names:
+            if model not in seen:
+                seen.add(model)
+                unique_models.append(model)
+        
+        for model_name in unique_models:
+            try:
+                self.model = genai.GenerativeModel(model_name)
+                # Test the model with a simple request
+                test_response = self.model.generate_content("Test")
+                self.logger.info(f"✓ Gemini API configured successfully with model: {model_name}")
+                return
+            except Exception as e:
+                self.logger.debug(f"Failed to initialize model {model_name}: {e}")
+                continue
+        
+        # If all models fail, raise an error
+        raise Exception("Unable to initialize any Gemini model. Please check your API key and library version.")
     
     def setup_firebase(self):
         """Setup Firebase connection."""

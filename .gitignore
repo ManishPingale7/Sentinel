@@ -1,4 +1,78 @@
-myenv
-__pycache__
+# ─── Python ───────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg-info/
+*.egg
+dist/
+build/
+*.whl
+
+# ─── Virtual Environments ─────────────────────────────
+myenv/
+api_env/
+venv/
+.venv/
+env/
+
+# ─── Environment / Secrets ────────────────────────────
 .env
+.env.*
 sentinel-ed93e-firebase-adminsdk-fbsvc-996cb7c18e.json
+
+# ─── Model Weights (large binary files) ──────────────
+*.pth
+*.ckpt
+*.pt
+*.bin
+*.safetensors
+model/
+ai4g-flood/models/
+DATA/sen1floods11_Prithvi_100M.pth
+
+# ─── Outputs (regenerable) ───────────────────────────
+OUTPUTS/
+scan_results.txt
+
+# ─── Data (too large for git) ────────────────────────
+DATA/S1Hand/
+DATA/SenForFlood/
+DATA/LabelHand/
+DATA/output_preds/
+Simulate data/
+
+# ─── Third-party repos (submodules or cloned) ────────
+mmsegmentation/
+hls-foundation-os/
+ai4g-flood/.git/
+ai4g-flood/venv/
+
+# ─── Media / Documents ───────────────────────────────
+Media/
+Sentinel working SS/
+*.docx
+*.jfif
+*.mp4
+
+# ─── IDE / OS ────────────────────────────────────────
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+Thumbs.db
+Desktop.ini
+.DS_Store
+
+# ─── Jupyter ─────────────────────────────────────────
+.ipynb_checkpoints/
+*.ipynb
+
+# ─── Misc ────────────────────────────────────────────
+*.log
+*.tmp
+*.bak
+*.crdownload
+11094458
+DATA/11094458

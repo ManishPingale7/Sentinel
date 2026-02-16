@@ -54,10 +54,11 @@ class EnhancedDisasterConsumer:
         self.consumer_name = f"enhanced_consumer_{int(time.time())}"
         self.running = True
         
-        # Initialize NLP Engine
+        # Initialize NLP Engine with specific model
         self.nlp_engine = DisasterNLPEngine(
             gemini_api_key=gemini_api_key,
-            firebase_cred_path=firebase_cred_path
+            firebase_cred_path=firebase_cred_path,
+            model_name='models/gemini-2.5-flash'
         )
         
         # Statistics
