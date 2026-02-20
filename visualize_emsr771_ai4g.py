@@ -33,11 +33,11 @@ from scipy.ndimage import binary_opening
 # ═══════════════════════════════════════════════════════════
 #  PATHS
 # ═══════════════════════════════════════════════════════════
-DATA_ROOT    = r"G:\Sentinel\DATA\SenForFlood\CEMS\EMSR771"
-AI4G_PRED    = r"G:\Sentinel\OUTPUTS\EMSR771_ai4g\geotiffs"
-PRITHVI_PRED = r"G:\Sentinel\OUTPUTS\Prithvi\EMSR771"
+DATA_ROOT    = r"D:\Sentinel Final\Sentinel Backend\DATA\CEMS\EMSR771"
+AI4G_PRED    = r"D:\Sentinel Final\Sentinel Backend\OUTPUTS\EMSR771_ai4g\geotiffs"
+PRITHVI_PRED = r"D:\Sentinel Final\Sentinel Backend\OUTPUTS\Prithvi\EMSR771"
 GT_DIR       = os.path.join(DATA_ROOT, "flood_mask")
-OUTPUT_DIR   = r"G:\Sentinel\OUTPUTS\EMSR771_ai4g\overlays"
+OUTPUT_DIR   = r"D:\Sentinel Final\Sentinel Backend\OUTPUTS\EMSR771_ai4g\overlays"
 
 S1_BEFORE = os.path.join(DATA_ROOT, "s1_before_flood")
 S1_DURING = os.path.join(DATA_ROOT, "s1_during_flood")

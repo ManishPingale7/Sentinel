@@ -28,7 +28,7 @@ import matplotlib.pyplot as plt
 pathlib.PosixPath = pathlib.WindowsPath
 
 # Add ai4g-flood src to path so we can import its utilities
-AI4G_ROOT = r"G:\Sentinel\ai4g-flood"
+AI4G_ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "ai4g-flood")
 sys.path.insert(0, os.path.join(AI4G_ROOT, "src"))
 
 from utils.image_processing import (
@@ -39,8 +39,8 @@ from utils.model import load_model
 
 # ── CONFIG ─────────────────────────────────────────────────
 MODEL_PATH = os.path.join(AI4G_ROOT, "models", "ai4g_sar_model.ckpt")
-DATA_DIR   = r"G:\Sentinel\DATA\S1Hand"
-OUTPUT_DIR = r"G:\Sentinel\OUTPUTS\ai4g_demo"
+DATA_DIR   = r"D:\Sentinel Final\Sentinel Backend\DATA\S1Hand"
+OUTPUT_DIR = r"D:\Sentinel Final\Sentinel Backend\OUTPUTS\ai4g_demo"
 
 # Pick two India tiles to simulate pre-event / post-event
 PRE_TILE  = os.path.join(DATA_DIR, "India_103447_S1Hand.tif")   # "before" flood

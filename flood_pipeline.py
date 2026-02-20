@@ -36,11 +36,11 @@ import matplotlib.pyplot as plt
 from scipy.ndimage import binary_opening
 
 # ── Paths (edit once) ───────────────────────────────────────────────────
-SENFORFLOOD_ROOT = r"G:\Sentinel\DATA\SenForFlood\CEMS"
-CONFIG_PATH      = r"G:\Sentinel\hls-foundation-os\configs\sen1floods11_config.py"
-CKPT_PATH        = r"G:\Sentinel\model\sen1floods11_Prithvi_100M.pth"
-DAMNET_CKPT      = r"G:\Sentinel\OUTPUTS\DAMNet\best.pt"
-OUTPUT_ROOT      = r"G:\Sentinel\OUTPUTS"
+SENFORFLOOD_ROOT = r"D:\Sentinel Final\Sentinel Backend\DATA\CEMS"
+CONFIG_PATH      = r"D:\Sentinel Final\Sentinel Backend\hls-foundation-os\configs\sen1floods11_config.py"
+CKPT_PATH        = r"D:\Sentinel Final\Sentinel Backend\model\sen1floods11_Prithvi_100M.pth"
+DAMNET_CKPT      = r"D:\Sentinel Final\Sentinel Backend\OUTPUTS\DAMNet\best.pt"
+OUTPUT_ROOT      = r"D:\Sentinel Final\Sentinel Backend\OUTPUTS"
 
 # Band mapping: SenForFlood 8-band → first 6 = B2,B3,B4,B8A,B11,B12
 SENFORFLOOD_BANDS = [0, 1, 2, 3, 4, 5]

@@ -36,7 +36,7 @@ from sklearn.metrics import (
 pathlib.PosixPath = pathlib.WindowsPath
 
 # ── Add ai4g-flood source to path ──
-AI4G_ROOT = r"G:\Sentinel\ai4g-flood"
+AI4G_ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "ai4g-flood")
 sys.path.insert(0, os.path.join(AI4G_ROOT, "src"))
 
 from utils.image_processing import (
@@ -49,8 +49,8 @@ from utils.model import load_model
 #  CONFIGURATION
 # ═══════════════════════════════════════════════════════════
 MODEL_PATH  = os.path.join(AI4G_ROOT, "models", "ai4g_sar_model.ckpt")
-DATA_ROOT   = r"G:\Sentinel\DATA\SenForFlood\CEMS\EMSR771"
-OUTPUT_DIR  = r"G:\Sentinel\OUTPUTS\EMSR771_ai4g"
+DATA_ROOT   = r"D:\Sentinel Final\Sentinel Backend\DATA\CEMS\EMSR771"
+OUTPUT_DIR  = r"D:\Sentinel Final\Sentinel Backend\OUTPUTS\EMSR771_ai4g"
 
 BEFORE_DIR  = os.path.join(DATA_ROOT, "s1_before_flood")
 DURING_DIR  = os.path.join(DATA_ROOT, "s1_during_flood")

@@ -5,8 +5,8 @@ Serves flood prediction data, GeoJSON polygons, RGB tiles, and statistics
 for a Next.js map-based frontend.
 
 Run:
-    cd G:\Sentinel
-    uvicorn backend.api:app --reload --port 8000
+    cd G:\\Sentinel
+    uvicorn backend.api:app --reload --port 8001
 
 Endpoints:
     GET  /api/events                              → list CEMS events
@@ -39,9 +39,20 @@ from scipy.ndimage import binary_opening
 
 # ── Configuration ───────────────────────────────────────────────────────
 
-SENFORFLOOD_ROOT = r"G:\Sentinel\DATA\SenForFlood\CEMS"
-PRED_ROOT        = r"G:\Sentinel\OUTPUTS\Prithvi"
-REPORT_CSV       = r"G:\Sentinel\OUTPUTS\change_detection_report.csv"
+_BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+SENFORFLOOD_ROOT = os.environ.get(
+    "SENFORFLOOD_ROOT",
+    os.path.join(_BASE_DIR, "DATA", "SenForFlood", "CEMS"),
+)
+PRED_ROOT = os.environ.get(
+    "PRED_ROOT",
+    os.path.join(_BASE_DIR, "OUTPUTS", "Prithvi"),
+)
+REPORT_CSV = os.environ.get(
+    "REPORT_CSV",
+    os.path.join(_BASE_DIR, "OUTPUTS", "change_detection_report.csv"),
+)
 PIXEL_RES_M      = 10.0
 
 # ── App ─────────────────────────────────────────────────────────────────

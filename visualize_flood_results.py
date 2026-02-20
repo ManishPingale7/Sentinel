@@ -40,9 +40,9 @@ PIXEL_RES_M = 10.0
 #  DEFAULTS
 # ═══════════════════════════════════════════════════════════
 DEFAULTS = dict(
-    cems_root  = r"G:\Sentinel\DATA\SenForFlood\CEMS",
-    pred_root  = r"G:\Sentinel\OUTPUTS\ai4g_flood",
-    output_root= r"G:\Sentinel\OUTPUTS\ai4g_flood",
+    cems_root  = r"D:\Sentinel Final\Sentinel Backend\DATA\CEMS",
+    pred_root  = r"D:\Sentinel Final\Sentinel Backend\OUTPUTS\ai4g_flood",
+    output_root= r"D:\Sentinel Final\Sentinel Backend\OUTPUTS\ai4g_flood",
 )
 
 
