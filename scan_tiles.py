@@ -4,8 +4,9 @@ Helps find the best cloud-free before/during pairs for demo.
 """
 import glob, os, numpy as np, rasterio, csv
 
-CEMS_ROOT = r"G:\Sentinel\DATA\SenForFloods\SenForFlood\CEMS"
-PRED_ROOT = r"G:\Sentinel\OUTPUTS\Prithvi"
+_BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+CEMS_ROOT = os.path.join(_BASE_DIR, "DATA", "SenForFloods", "SenForFlood", "CEMS")
+PRED_ROOT = os.path.join(_BASE_DIR, "OUTPUTS", "Prithvi")
 
 rows = []
 

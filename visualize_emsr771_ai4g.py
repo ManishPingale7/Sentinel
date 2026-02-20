@@ -33,11 +33,12 @@ from scipy.ndimage import binary_opening
 # ═══════════════════════════════════════════════════════════
 #  PATHS
 # ═══════════════════════════════════════════════════════════
-DATA_ROOT    = r"D:\Sentinel Final\Sentinel Backend\DATA\CEMS\EMSR771"
-AI4G_PRED    = r"D:\Sentinel Final\Sentinel Backend\OUTPUTS\EMSR771_ai4g\geotiffs"
-PRITHVI_PRED = r"D:\Sentinel Final\Sentinel Backend\OUTPUTS\Prithvi\EMSR771"
+_BASE_DIR    = os.path.dirname(os.path.abspath(__file__))
+DATA_ROOT    = os.path.join(_BASE_DIR, "DATA", "CEMS", "EMSR771")
+AI4G_PRED    = os.path.join(_BASE_DIR, "OUTPUTS", "EMSR771_ai4g", "geotiffs")
+PRITHVI_PRED = os.path.join(_BASE_DIR, "OUTPUTS", "Prithvi", "EMSR771")
 GT_DIR       = os.path.join(DATA_ROOT, "flood_mask")
-OUTPUT_DIR   = r"D:\Sentinel Final\Sentinel Backend\OUTPUTS\EMSR771_ai4g\overlays"
+OUTPUT_DIR   = os.path.join(_BASE_DIR, "OUTPUTS", "EMSR771_ai4g", "overlays")
 
 S1_BEFORE = os.path.join(DATA_ROOT, "s1_before_flood")
 S1_DURING = os.path.join(DATA_ROOT, "s1_during_flood")

@@ -4,7 +4,7 @@ Tests the complete pipeline on CPU with tiny model and 128x128 crops.
 """
 import os, sys, time
 import torch
-sys.path.insert(0, r"G:\Sentinel")
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 torch.manual_seed(42)
 
@@ -72,7 +72,7 @@ print("  PASS")
 
 # ── Step 5: Train 2 full epochs ──
 print("\n[5/6] Training 2 epochs (CPU, 128x128, tiny model)...")
-cfg.output_dir = r"G:\Sentinel\OUTPUTS\DAMNet_test"
+cfg.output_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "OUTPUTS", "DAMNet_test")
 os.makedirs(cfg.output_dir, exist_ok=True)
 
 # Fresh model to avoid gradient contamination from step 4

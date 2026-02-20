@@ -4,8 +4,11 @@ DAM-Net Configuration
 All hyper-parameters in one place.  Create presets via class methods.
 """
 
+import os
 from dataclasses import dataclass, field
 from typing import List, Tuple
+
+_DAMNET_BASE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 
 @dataclass
@@ -43,12 +46,12 @@ class DAMNetConfig:
 
     # ── Data ─────────────────────────────────────────────────────────
     pixel_res_m: float = 10.0          # Sentinel pixel size in metres
-    train_csv: str = r"G:\Sentinel\DATA\flood_train_data.csv"
-    valid_csv: str = r"G:\Sentinel\DATA\flood_valid_data.csv"
-    test_csv: str = r"G:\Sentinel\DATA\flood_test_data.csv"
-    s1_dir: str = r"G:\Sentinel\DATA\S1Hand"  # folder holding *_S1Hand.tif files
-    label_dir: str = r"G:\Sentinel\DATA\LabelHand"  # folder holding *_LabelHand.tif files
-    output_dir: str = r"G:\Sentinel\OUTPUTS\DAMNet"
+    train_csv: str = os.path.join(_DAMNET_BASE, "DATA", "flood_train_data.csv")
+    valid_csv: str = os.path.join(_DAMNET_BASE, "DATA", "flood_valid_data.csv")
+    test_csv: str = os.path.join(_DAMNET_BASE, "DATA", "flood_test_data.csv")
+    s1_dir: str = os.path.join(_DAMNET_BASE, "DATA", "S1Hand")
+    label_dir: str = os.path.join(_DAMNET_BASE, "DATA", "LabelHand")
+    output_dir: str = os.path.join(_DAMNET_BASE, "OUTPUTS", "DAMNet")
 
     # ── Misc ─────────────────────────────────────────────────────────
     seed: int = 42

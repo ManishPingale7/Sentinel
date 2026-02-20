@@ -38,9 +38,10 @@ from utils.image_processing import (
 from utils.model import load_model
 
 # ── CONFIG ─────────────────────────────────────────────────
+_BASE_DIR  = os.path.dirname(os.path.abspath(__file__))
 MODEL_PATH = os.path.join(AI4G_ROOT, "models", "ai4g_sar_model.ckpt")
-DATA_DIR   = r"D:\Sentinel Final\Sentinel Backend\DATA\S1Hand"
-OUTPUT_DIR = r"D:\Sentinel Final\Sentinel Backend\OUTPUTS\ai4g_demo"
+DATA_DIR   = os.path.join(_BASE_DIR, "DATA", "S1Hand")
+OUTPUT_DIR = os.path.join(_BASE_DIR, "OUTPUTS", "ai4g_demo")
 
 # Pick two India tiles to simulate pre-event / post-event
 PRE_TILE  = os.path.join(DATA_DIR, "India_103447_S1Hand.tif")   # "before" flood

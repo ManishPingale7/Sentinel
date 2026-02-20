@@ -426,7 +426,8 @@ def parse_args():
     p.add_argument("--checkpoint", required=True, help="Path to .pt checkpoint")
     p.add_argument("--post", required=True, help="Post-flood SAR GeoTIFF")
     p.add_argument("--pre", default=None, help="Pre-flood SAR GeoTIFF (optional)")
-    p.add_argument("--output", default=r"G:\Sentinel\OUTPUTS\DAMNet",
+    p.add_argument("--output",
+                   default=os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "OUTPUTS", "DAMNet"),
                    help="Output directory")
     p.add_argument("--device", default="cuda")
     p.add_argument("--tile-size", type=int, default=512)

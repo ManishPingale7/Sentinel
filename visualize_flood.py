@@ -29,11 +29,12 @@ import matplotlib
 import matplotlib.pyplot as plt
 from scipy.ndimage import binary_opening
 
-# ── Default paths (edit if needed) ──────────────────────────────────────
-SENFORFLOOD_ROOT = r"D:\Sentinel Final\Sentinel Backend\DATA\CEMS"
-PRED_ROOT        = r"D:\Sentinel Final\Sentinel Backend\OUTPUTS\Prithvi"
-REPORT_CSV       = r"D:\Sentinel Final\Sentinel Backend\OUTPUTS\change_detection_report.csv"
-SAVE_DIR         = r"D:\Sentinel Final\Sentinel Backend\OUTPUTS\Visualizations"
+# ── Default paths (relative to project root) ───────────────────────────
+_BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+SENFORFLOOD_ROOT = os.path.join(_BASE_DIR, "DATA", "CEMS")
+PRED_ROOT        = os.path.join(_BASE_DIR, "OUTPUTS", "Prithvi")
+REPORT_CSV       = os.path.join(_BASE_DIR, "OUTPUTS", "change_detection_report.csv")
+SAVE_DIR         = os.path.join(_BASE_DIR, "OUTPUTS", "Visualizations")
 PIXEL_RES_M      = 10.0
 
 

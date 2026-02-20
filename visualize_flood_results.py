@@ -39,10 +39,11 @@ PIXEL_RES_M = 10.0
 # ═══════════════════════════════════════════════════════════
 #  DEFAULTS
 # ═══════════════════════════════════════════════════════════
+_BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DEFAULTS = dict(
-    cems_root  = r"D:\Sentinel Final\Sentinel Backend\DATA\CEMS",
-    pred_root  = r"D:\Sentinel Final\Sentinel Backend\OUTPUTS\ai4g_flood",
-    output_root= r"D:\Sentinel Final\Sentinel Backend\OUTPUTS\ai4g_flood",
+    cems_root  = os.path.join(_BASE_DIR, "DATA", "CEMS"),
+    pred_root  = os.path.join(_BASE_DIR, "OUTPUTS", "ai4g_flood"),
+    output_root= os.path.join(_BASE_DIR, "OUTPUTS", "ai4g_flood"),
 )
 
 

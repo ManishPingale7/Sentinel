@@ -49,10 +49,11 @@ from utils.model import load_model
 # ═══════════════════════════════════════════════════════════
 #  DEFAULTS
 # ═══════════════════════════════════════════════════════════
+_BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DEFAULTS = dict(
-    cems_root   = r"D:\Sentinel Final\Sentinel Backend\DATA\CEMS",
+    cems_root   = os.path.join(_BASE_DIR, "DATA", "CEMS"),
     model_path  = os.path.join(AI4G_ROOT, "models", "ai4g_sar_model.ckpt"),
-    output_root = r"D:\Sentinel Final\Sentinel Backend\OUTPUTS\ai4g_flood",
+    output_root = os.path.join(_BASE_DIR, "OUTPUTS", "ai4g_flood"),
     input_size  = 128,
     buffer_size = 4,
     batch_size  = 512,
