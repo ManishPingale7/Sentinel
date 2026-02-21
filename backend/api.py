@@ -25,6 +25,7 @@ import glob
 import io
 import os
 from functools import lru_cache
+from pathlib import Path
 from typing import Optional
 
 import numpy as np
@@ -33,7 +34,8 @@ from rasterio.features import shapes as rio_shapes
 from rasterio.warp import transform_bounds
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse, StreamingResponse
+from fastapi.responses import JSONResponse, StreamingResponse, HTMLResponse, FileResponse
+from fastapi.staticfiles import StaticFiles
 from PIL import Image
 from scipy.ndimage import binary_opening
 
@@ -72,6 +74,11 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# ── Serve static files (satellite viewer) ───────────────────────────────
+STATIC_DIR = os.path.join(os.path.dirname(__file__), "static")
+if os.path.isdir(STATIC_DIR):
+    app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
 
 # ── Helpers ─────────────────────────────────────────────────────────────
@@ -234,6 +241,16 @@ def _mask_to_geojson(tif_path: str, flood_value: int = 1,
 @app.get("/")
 def root():
     return {"status": "ok", "api": "Sentinel Flood Detection", "version": "1.0.0"}
+
+
+@app.get("/viewer", response_class=HTMLResponse)
+def satellite_viewer():
+    """Serve the Copernicus-style satellite viewer page."""
+    viewer_path = os.path.join(STATIC_DIR, "satellite_viewer.html")
+    if not os.path.exists(viewer_path):
+        raise HTTPException(404, "Satellite viewer page not found")
+    with open(viewer_path, "r", encoding="utf-8") as f:
+        return HTMLResponse(content=f.read())
 
 
 @app.get("/api/summary")

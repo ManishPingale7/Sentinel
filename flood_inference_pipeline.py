@@ -47,13 +47,14 @@ from utils.model import load_model
 
 
 # ═══════════════════════════════════════════════════════════
-#  DEFAULTS
+#  DEFAULTS  (relative to this script's directory)
 # ═══════════════════════════════════════════════════════════
-_BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+_SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+
 DEFAULTS = dict(
-    cems_root   = os.path.join(_BASE_DIR, "DATA", "CEMS"),
+    cems_root   = os.path.join(_SCRIPT_DIR, "DATA", "SenForFlood", "CEMS"),
     model_path  = os.path.join(AI4G_ROOT, "models", "ai4g_sar_model.ckpt"),
-    output_root = os.path.join(_BASE_DIR, "OUTPUTS", "ai4g_flood"),
+    output_root = os.path.join(_SCRIPT_DIR, "OUTPUTS", "ai4g_flood"),
     input_size  = 128,
     buffer_size = 4,
     batch_size  = 512,

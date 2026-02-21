@@ -37,13 +37,14 @@ PIXEL_RES_M = 10.0
 
 
 # ═══════════════════════════════════════════════════════════
-#  DEFAULTS
+#  DEFAULTS  (relative to this script's directory)
 # ═══════════════════════════════════════════════════════════
-_BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+_SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+
 DEFAULTS = dict(
-    cems_root  = os.path.join(_BASE_DIR, "DATA", "CEMS"),
-    pred_root  = os.path.join(_BASE_DIR, "OUTPUTS", "ai4g_flood"),
-    output_root= os.path.join(_BASE_DIR, "OUTPUTS", "ai4g_flood"),
+    cems_root  = os.path.join(_SCRIPT_DIR, "DATA", "SenForFlood", "CEMS"),
+    pred_root  = os.path.join(_SCRIPT_DIR, "OUTPUTS", "ai4g_flood"),
+    output_root= os.path.join(_SCRIPT_DIR, "OUTPUTS", "ai4g_flood"),
 )
 
 
