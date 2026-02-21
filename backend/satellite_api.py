@@ -341,10 +341,12 @@ def global_summary():
     total_tiles = 0
     total_new_km2 = 0.0
     total_during_km2 = 0.0
+    all_f1 = []
 
     for cems_id in events:
         tiles = _get_tiles(cems_id)
         total_tiles += len(tiles)
+        metrics = _load_metrics_csv(cems_id)
         for t in tiles:
             try:
                 s = _compute_tile_stats(cems_id, t)
@@ -352,14 +354,21 @@ def global_summary():
                 total_during_km2 += s["during_km2"]
             except Exception:
                 continue
+            m = metrics.get(t, {})
+            if isinstance(m.get("f1"), (int, float)):
+                all_f1.append(m["f1"])
+
+    avg_f1 = round(sum(all_f1) / len(all_f1), 4) if all_f1 else None
 
     return {
         "total_events": len(events),
         "total_tiles": total_tiles,
         "total_new_flood_km2": round(total_new_km2, 4),
         "total_flooded_km2": round(total_during_km2, 4),
+        "avg_f1": avg_f1,
         "events": events,
         "model": "ai4g-flood (SAR U-Net, MobileNetV2)",
+        "pixel_resolution_m": PIXEL_RES_M,
     }
 
 
@@ -411,6 +420,7 @@ def list_events():
         meta = EVENT_META.get(cems_id, {})
 
         events.append({
+            "event_id": cems_id,
             "cems_id": cems_id,
             "title": meta.get("title", f"Flood Event {cems_id}"),
             "description": meta.get("description", ""),
@@ -463,6 +473,7 @@ def event_detail(cems_id: str):
                 "iou": tile_metrics.get("iou", None),
                 "precision": tile_metrics.get("precision", None),
                 "recall": tile_metrics.get("recall", None),
+                "accuracy": tile_metrics.get("accuracy", None),
             },
             "has_s2": bool(_s2_path(cems_id, t, "during")),
             "has_s1": bool(_s1_path(cems_id, t, "during")),
@@ -478,10 +489,12 @@ def event_detail(cems_id: str):
     meta = EVENT_META.get(cems_id, {})
 
     return {
+        "event_id": cems_id,
         "cems_id": cems_id,
         "title": meta.get("title", f"Flood Event {cems_id}"),
         "description": meta.get("description", ""),
         "country": meta.get("country", "Unknown"),
+        "event_type": meta.get("event_type", "Flood"),
         "tile_count": len(tiles),
         "bbox": bbox,
         "tiles": tile_list,
@@ -494,7 +507,7 @@ def tile_bounds(cems_id: str, tile: str):
     p = _pred_path(cems_id, tile)
     if not os.path.exists(p):
         raise HTTPException(404, f"Tile {tile} not found")
-    return {"tile": tile, "bounds": _tile_bounds_4326(p)}
+    return {"event_id": cems_id, "tile": tile, "bounds": _tile_bounds_4326(p)}
 
 
 @app.get("/api/events/{cems_id}/tiles/{tile}/geojson")
@@ -749,6 +762,8 @@ def tile_stats(cems_id: str, tile: str):
     bounds = _tile_bounds_4326(pred_p)
     stats["bounds"] = bounds
     stats["center"] = [(bounds[1]+bounds[3])/2, (bounds[0]+bounds[2])/2]
+    stats["tile"] = tile
+    stats["event_id"] = cems_id
 
     # Add model metrics if available
     metrics = _load_metrics_csv(cems_id)
@@ -757,5 +772,6 @@ def tile_stats(cems_id: str, tile: str):
     stats["iou"] = m.get("iou")
     stats["precision"] = m.get("precision")
     stats["recall"] = m.get("recall")
+    stats["accuracy"] = m.get("accuracy")
 
     return stats
